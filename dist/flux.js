@@ -59,9 +59,10 @@
 	var _transmitter2 = _interopRequireDefault(_transmitter);
 
 	var BOOTSTRAP = {};
+	var keys = Object.keys;
 
 	function createActions(context, name, model) {
-	  return Object.keys(model).reduce(function (actions, id) {
+	  return keys(model).reduce(function (actions, id) {
 	    var action = function action() {
 	      for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
 	        args[_key] = arguments[_key];
@@ -80,39 +81,39 @@
 	  var bus = (0, _transmitter2['default'])();
 
 	  var observables = model.observe(context, state);
+	  var signalKeys = keys(observables);
 
 	  // setup the dependencies and signals
-	  var dependencies = Object.keys(observables).map(function (key) {
+	  var dependencies = signalKeys.map(function (key) {
 	    return observables[key].dispatchToken;
 	  }).filter(Boolean);
 
 	  var dispatchToken = context.dispatcher.register(function (payload) {
+	    var action = payload.action;
+	    var data = payload.data;
+
 	    // bootstrap state
-	    if (payload.action === BOOTSTRAP && payload.data[name]) {
-	      return state = payload.data[name];
+	    if (action === BOOTSTRAP && data[name]) {
+	      return state = data[name];
 	    }
 
-	    var shouldReduce = false;
-
 	    // pull the signals from the action
-	    var signals = Object.keys(observables).reduce(function (obj, key) {
+	    var signals = signalKeys.reduce(function (arr, key) {
 	      var observable = observables[key];
-	      if (observable === payload.action) {
-	        obj[key] = payload.data;
-	        shouldReduce = true;
-	      } else if (observable.dispatchToken) {
-	        obj[key] = observable.get();
-	        shouldReduce = true;
-	      }
-	      return obj;
-	    }, {});
+	      if (observable === action) arr.push([key, data]);else if (observable.dispatchToken) arr.push([key, observable.get()]);
+	      return arr;
+	    }, []);
+
+	    var emitChange = signals.length;
 
 	    // wait for any derived data
 	    context.dispatcher.waitFor(dependencies);
 
 	    // reduce and output
-	    if (shouldReduce) {
-	      var nextState = model.reduce(context, state, signals);
+	    if (emitChange) {
+	      var nextState = model.reduce(context, state, signals.reduce(function (o, x) {
+	        return (o[x[0]] = x[1], o);
+	      }, {}));
 	      var output = model.output ? model.output(context, state, nextState) : nextState;
 	      state = nextState;
 	      // if no output, no push
@@ -122,7 +123,7 @@
 
 	  var exports = model.exports ? model.exports(context) : {};
 
-	  return Object.keys(exports).reduce(function (obj, key) {
+	  return keys(exports).reduce(function (obj, key) {
 	    obj[key] = exports[key];
 	    return obj;
 	  }, {
@@ -141,7 +142,7 @@
 	MicroFlux.prototype.registerActions = function (actions) {
 	  var _this = this;
 
-	  Object.keys(actions).forEach(function (name) {
+	  keys(actions).forEach(function (name) {
 	    _this[name] = createActions(_this, name, actions[name]);
 	  });
 	};
@@ -149,7 +150,7 @@
 	MicroFlux.prototype.registerStores = function (stores) {
 	  var _this2 = this;
 
-	  Object.keys(stores).forEach(function (name) {
+	  keys(stores).forEach(function (name) {
 	    _this2[name] = createStore(_this2, name, stores[name]);
 	  });
 	};

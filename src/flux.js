@@ -2,9 +2,10 @@ import { Dispatcher } from 'flux'
 import transmitter from 'transmitter'
 
 const BOOTSTRAP = {}
+const keys = Object.keys
 
 function createActions(context, name, model) {
-  return Object.keys(model).reduce((actions, id) => {
+  return keys(model).reduce((actions, id) => {
     const action = (...args) => {
       const data = model[id](...args)
       context.dispatcher.dispatch({ action, data })
@@ -19,39 +20,38 @@ function createStore(context, name, model) {
   const bus = transmitter()
 
   const observables = model.observe(context, state)
+  const signalKeys = keys(observables)
 
   // setup the dependencies and signals
-  const dependencies = Object.keys(observables).map((key) => {
+  const dependencies = signalKeys.map((key) => {
     return observables[key].dispatchToken
   }).filter(Boolean)
 
   const dispatchToken = context.dispatcher.register((payload) => {
+    const { action, data } = payload
     // bootstrap state
-    if (payload.action === BOOTSTRAP && payload.data[name]) {
-      return state = payload.data[name]
+    if (action === BOOTSTRAP && data[name]) {
+      return state = data[name]
     }
 
-    let shouldReduce = false
-
     // pull the signals from the action
-    const signals = Object.keys(observables).reduce((obj, key) => {
+    const signals = signalKeys.reduce((arr, key) => {
       const observable = observables[key]
-      if (observable === payload.action) {
-        obj[key] = payload.data
-        shouldReduce = true
-      } else if (observable.dispatchToken) {
-        obj[key] = observable.get()
-        shouldReduce = true
-      }
-      return obj
-    }, {})
+      if (observable === action) arr.push([key, data])
+      else if (observable.dispatchToken) arr.push([key, observable.get()])
+      return arr
+    }, [])
+
+    const emitChange = signals.length
 
     // wait for any derived data
     context.dispatcher.waitFor(dependencies)
 
     // reduce and output
-    if (shouldReduce) {
-      const nextState = model.reduce(context, state, signals)
+    if (emitChange) {
+      const nextState = model.reduce(context, state, signals.reduce((o, x) => {
+        return o[x[0]] = x[1], o
+      }, {}))
       const output = model.output
         ? model.output(context, state, nextState)
         : nextState
@@ -63,7 +63,7 @@ function createStore(context, name, model) {
 
   const exports = model.exports ? model.exports(context) : {}
 
-  return Object.keys(exports).reduce((obj, key) => {
+  return keys(exports).reduce((obj, key) => {
     obj[key] = exports[key]
     return obj
   }, {
@@ -78,13 +78,13 @@ function MicroFlux() {
 }
 
 MicroFlux.prototype.registerActions = function (actions) {
-  Object.keys(actions).forEach((name) => {
+  keys(actions).forEach((name) => {
     this[name] = createActions(this, name, actions[name])
   })
 }
 
 MicroFlux.prototype.registerStores = function (stores) {
-  Object.keys(stores).forEach((name) => {
+  keys(stores).forEach((name) => {
     this[name] = createStore(this, name, stores[name])
   })
 }
