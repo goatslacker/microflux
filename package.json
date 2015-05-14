@@ -1,0 +1,40 @@
+{
+  "name": "microflux",
+  "version": "0.0.1",
+  "description": "A really small stateless flux backed by Flux dispatcher",
+  "main": "flux.js",
+  "scripts": {
+    "build": "npm run build-flux && npm run build-addons && webpack",
+    "build-flux": "babel src/flux.js -o flux.js",
+    "build-addons": "babel src/addons.js -o addons.js",
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/goatslacker/microflux"
+  },
+  "keywords": [
+    "flux",
+    "small",
+    "uni",
+    "directional",
+    "es6",
+    "flow",
+    "alt",
+    "react"
+  ],
+  "author": "Josh Perez <josh@goatslacker.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/goatslacker/microflux/issues"
+  },
+  "homepage": "https://github.com/goatslacker/microflux",
+  "dependencies": {
+    "flux": "^2.0.3",
+    "transmitter": "^1.0.1"
+  },
+  "devDependencies": {
+    "babel": "^5.3.3",
+    "babel-loader": "^5.0.0"
+  }
+}
