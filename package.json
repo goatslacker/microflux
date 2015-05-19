@@ -1,6 +1,6 @@
 {
   "name": "microflux",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A really small stateless flux backed by Flux dispatcher",
   "main": "flux.js",
   "scripts": {
