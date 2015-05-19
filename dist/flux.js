@@ -99,8 +99,11 @@
 
 	    // pull the signals from the action
 	    var signals = signalKeys.reduce(function (arr, key) {
-	      var observable = observables[key];
-	      if (observable === action) arr.push([key, data]);else if (observable.dispatchToken) arr.push([key, observable.get()]);
+	      var value = observables[key];
+	      var list = Array.isArray(value) ? value : [value];
+	      list.forEach(function (observable) {
+	        if (observable === action) arr.push([key, data]);else if (observable.dispatchToken) arr.push([key, observable.get()]);
+	      });
 	      return arr;
 	    }, []);
 
@@ -121,10 +124,10 @@
 	    }
 	  });
 
-	  var exports = model.exports ? model.exports(context) : {};
+	  var statics = model.statics ? model.statics(context) : {};
 
-	  return keys(exports).reduce(function (obj, key) {
-	    obj[key] = exports[key];
+	  return keys(statics).reduce(function (obj, key) {
+	    obj[key] = statics[key];
 	    return obj;
 	  }, {
 	    dispatchToken: dispatchToken,

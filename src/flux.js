@@ -36,9 +36,12 @@ function createStore(context, name, model) {
 
     // pull the signals from the action
     const signals = signalKeys.reduce((arr, key) => {
-      const observable = observables[key]
-      if (observable === action) arr.push([key, data])
-      else if (observable.dispatchToken) arr.push([key, observable.get()])
+      const value = observables[key]
+      const list = Array.isArray(value) ? value : [value]
+      list.forEach((observable) => {
+        if (observable === action) arr.push([key, data])
+        else if (observable.dispatchToken) arr.push([key, observable.get()])
+      })
       return arr
     }, [])
 
@@ -61,7 +64,7 @@ function createStore(context, name, model) {
     }
   })
 
-  const statics = model.statics model.statics(context) : {}
+  const statics = model.statics ? model.statics(context) : {}
 
   return keys(statics).reduce((obj, key) => {
     obj[key] = statics[key]
