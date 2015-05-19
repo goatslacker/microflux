@@ -61,10 +61,10 @@ function createStore(context, name, model) {
     }
   })
 
-  const exports = model.exports ? model.exports(context) : {}
+  const statics = model.statics model.statics(context) : {}
 
-  return keys(exports).reduce((obj, key) => {
-    obj[key] = exports[key]
+  return keys(statics).reduce((obj, key) => {
+    obj[key] = statics[key]
     return obj
   }, {
     dispatchToken,

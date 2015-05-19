@@ -28,7 +28,7 @@ const TodoStore = {
     todos: {}
   },
 
-  exports(context) {
+  statics(context) {
     return {
       areAllComplete() {
         const state = context.TodoStore.get()
