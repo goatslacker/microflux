@@ -1,8 +1,10 @@
 # µFlux
 
-## Update
+### Update
 
 [I merged a lot of the ideas here into Alt](https://github.com/goatslacker/alt/pull/279).
+
+--
 
 This is a really small (currently experimental) flux implementation taking ideas from:
 
